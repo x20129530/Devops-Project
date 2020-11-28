@@ -4,7 +4,7 @@ from django.utils.text import slugify
 class Project(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, unique=True, blank=True)
-    budget = models.IntegerField()
+    budget = models.DecimalField(max_digits=8, decimal_places=2)
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
@@ -15,8 +15,14 @@ class Project(models.Model):
         total_expense_amount = 0
         for expense in expense_list:
             total_expense_amount += expense.amount
-
         return self.budget -total_expense_amount   
+    
+    def budget_used(self):
+        expense_list = Expense.objects.filter(project=self)
+        total_expense_amount = 0
+        for expense in expense_list:
+            total_expense_amount += expense.amount
+        return total_expense_amount
 
     def total_transactions(self):
         expense_list = Expense.objects.filter(project=self)
@@ -30,7 +36,7 @@ class Category(models.Model):
 class Expense(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='expenses')
     title = models.CharField(max_length=100)
-    amount = models.DecimalField(max_digits=8 , decimal_places=2)
+    amount = models.DecimalField(max_digits=8, decimal_places=2)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
 class Meta:
